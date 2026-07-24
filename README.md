@@ -1,4 +1,4 @@
-markdown# 🍎 Applejack Bot
+# 🍎 Applejack Bot
 
 > 🤠 Честный, трудолюбивый и надёжный бот Эпплджек из Понивилля в Telegram
 
