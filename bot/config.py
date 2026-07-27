@@ -1,3 +1,11 @@
+"""
+Конфигурация бота Эпплджек.
+Загрузка переменных окружения из .env файла.
+
+Автор: MADAO81
+Версия: 1.0
+"""
+
 import os
 from dotenv import load_dotenv
 from pathlib import Path
@@ -5,6 +13,8 @@ from pathlib import Path
 load_dotenv()
 
 class Config:
+    """Класс конфигурации бота."""
+
     # Telegram
     TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
