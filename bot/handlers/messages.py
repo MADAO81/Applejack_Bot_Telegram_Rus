@@ -1,9 +1,9 @@
 """
 Обработчик текстовых сообщений для бота Эпплджек.
-Реагирует на упоминания, распознаёт погоду и отвечает через DeepSeek.
+Все сообщения отправляются в DeepSeek для осмысленного ответа.
 
 Автор: MADAO81
-Версия: 1.1 — исправлен fallback
+Версия: 1.4 — полный переход на DeepSeek
 """
 
 import logging
@@ -47,7 +47,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_id = update.effective_user.id
         user_message = update.message.text or ""
 
-        # Проверка на погоду
+        # === ПРОВЕРКА НА ПОГОДУ ===
         weather_keywords = ["погода", "weather", "за окном", "температура", "дождь", "солнце", "градус", "ветер"]
         if any(kw in user_message.lower() for kw in weather_keywords):
             patterns = [
@@ -85,7 +85,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(response, parse_mode="Markdown")
             return
 
-        # Обычный ответ через DeepSeek
+        # === ВСЕ ОСТАЛЬНЫЕ СООБЩЕНИЯ — ЧЕРЕЗ DEEPSEEK ===
         context_history = context_manager.get_context(user_id)
 
         response = await get_applejack_response(
@@ -94,27 +94,22 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             context_history=context_history
         )
 
-        # Если DeepSeek не ответил — даём осмысленный fallback
         if not response:
-            # Умный fallback для обычных сообщений
-            fallbacks = [
-                "🍎 Эпплджек тут, я ж! Чем могу помочь? Может, совет нужен или рецепт?",
-                "🤠 Ёкарный бабай, что-то я задумалась! Давай ещё раз спроси, а?",
-                "🌾 Я слушаю, кум! Если хочешь — могу дать честный совет или рецепт яблочного пирога.",
-                "🍎 Тю, ты чего? Я здесь, просто задумалась ненадолго! Давай начнём сначала.",
-            ]
-            import random
-            response = random.choice(fallbacks)
+            # Если DeepSeek не ответил — запасной вариант
+            response = (
+                "🍎 Я тебя слушаю, кум! Если хочешь — могу дать честный совет или рецепт яблочного пирога. "
+                "А если нужно что-то конкретное — спроси, я ж!"
+            )
 
         try:
             await status_message.delete()
         except BadRequest:
-            logger.warning("⚠️ Не удалось удалить status_message, возможно, его уже нет")
+            logger.warning("⚠️ Не удалось удалить status_message")
 
         await update.message.reply_text(response)
 
-        # Сохраняем контекст, только если ответ от DeepSeek (не fallback)
-        if response not in fallbacks:
+        # Сохраняем контекст, только если ответ не fallback
+        if "Я тебя слушаю, кум!" not in response:
             context_manager.save_context(user_id, user_message, response)
 
     except Exception as e:
